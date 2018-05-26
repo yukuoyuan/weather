@@ -32,6 +32,7 @@
   justify-content: center;
   align-items: center;
   margin-top: 40rpx;
+  margin-bottom: 40rpx;
 }
 
 .timetips-icon {
@@ -41,7 +42,36 @@
 }
 
 .timetips-text {
-   font-size: 30rpx;
+  font-size: 30rpx;
   line-height: 42rpx;
   opacity: 0.5;
+}
+
+.forcast-list {
+  display: flex;
+}
+
+.forcast-item {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  align-items: center;
+  width: 120rpx;
+}
+
+.forecast-time {
+  font-size: 30rpx;
+  line-height: 42rpx;
+}
+
+.forecast-weather {
+  margin-top: 50rpx;
+  width: 60rpx;
+  height: 60rpx;
+}
+
+.forecast-temp {
+  margin-top: 46rpx;
+  font-size: 40rpx;
+  line-height: 56rpx;
 }

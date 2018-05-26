@@ -21,7 +21,8 @@ Page({
   data: {
     nowTemp: 14,
     nowWeather: "多云",
-    nowWeatherBackground: "/images/sunny-bg.png"
+    nowWeatherBackground: "/images/sunny-bg.png",
+    hourWeather: []
   },
 
   /**
@@ -43,18 +44,8 @@ Page({
       success: res => {
         wx.stopPullDownRefresh()
         if (res.statusCode == 200) {
-          let temp = res.data.result.now.temp;
-          let weather = res.data.result.now.weather;
-          console.log(temp, weather);
-          this.setData({
-            nowTemp: temp + '°',
-            nowWeather: weatherMap[weather],
-            nowWeatherBackground: '/images/' + weather + '-bg.png'
-          })
-          wx.setNavigationBarColor({
-            frontColor: '#000000',
-            backgroundColor: weatherColorMap[weather],
-          })
+          this.setNow(res);
+          this.setHourlyWeather(res);
         }
       },
       fail: function (error) {
@@ -74,10 +65,35 @@ Page({
     });
   },
 
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom: function () {
+  setNow: function (res) {
 
+    let temp = res.data.result.now.temp;
+    let weather = res.data.result.now.weather;
+
+    this.setData({
+      nowTemp: temp + '°',
+      nowWeather: weatherMap[weather],
+      nowWeatherBackground: '/images/' + weather + '-bg.png',
+    })
+    wx.setNavigationBarColor({
+      frontColor: '#000000',
+      backgroundColor: weatherColorMap[weather]
+    })
+  },
+  setHourlyWeather: function (res) {
+    let forecast = res.data.result.forecast;
+    let hourWeather = [];
+    let nowHousr = new Date().getHours();
+    for (let i = 0; i < 8; i++) {
+      hourWeather.push({
+        time: ((i + nowHousr) % 24) + '时',
+        iconPath: '/images/' + forecast[i].weather + '-icon.png',
+        temp: forecast[i].temp + '°'
+      })
+    }
+    hourWeather[0].time = "现在";
+    this.setData({
+      hourWeather: hourWeather
+    })
   }
 })
