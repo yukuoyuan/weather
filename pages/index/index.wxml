@@ -7,6 +7,11 @@
     {{nowWeather}}
   </view>
   <image class='weather-bg' src='{{nowWeatherBackground}}' mode='scaleToFill'></image>
+  <view class='day-weather' bindtap='onTabDayWeather'>
+    <view class='day-text' >{{todayDate}}</view>
+    <view class='temp-text'> {{todayTemp}}</view>
+    <image class='arorow-icon' src='/images/arrow.png'></image>
+  </view>
 </view>
 <view class='timetips'>
   <image class="timetips-icon" src="/images/time-icon.png"></image>

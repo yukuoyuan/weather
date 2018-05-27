@@ -22,7 +22,9 @@ Page({
     nowTemp: 14,
     nowWeather: "多云",
     nowWeatherBackground: "/images/sunny-bg.png",
-    hourWeather: []
+    hourWeather: [],
+    todayDate: '',
+    todayTemp: 0
   },
 
   /**
@@ -46,6 +48,7 @@ Page({
         if (res.statusCode == 200) {
           this.setNow(res);
           this.setHourlyWeather(res);
+          this.setToday(res);
         }
       },
       fail: function (error) {
@@ -66,7 +69,6 @@ Page({
   },
 
   setNow: function (res) {
-
     let temp = res.data.result.now.temp;
     let weather = res.data.result.now.weather;
 
@@ -95,5 +97,17 @@ Page({
     this.setData({
       hourWeather: hourWeather
     })
+  },
+  setToday: function (res) {
+    let date = new Date();
+    this.setData({
+      todayTemp: `${res.data.result.today.minTemp}° ~ ${res.data.result.today.maxTemp}°`,
+      todayDate: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} 今天`
+    });
+  },
+  onTabDayWeather: function () {
+   wx.navigateTo({
+     url: '/pages/list/list',
+   })
   }
 })
