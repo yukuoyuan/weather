@@ -20,9 +20,6 @@ var qqmapsdk;
 const UNPROMPTED = 0;
 const UNAUTHORIZED = 1;
 const AUTHORIZED = 2;
-const UNPROMPTED_TIPS = "点击获取当前位置";
-const UNAUTHORIZED_TIPS = "点击开启位置权限";
-const AUTHORIZED_TIPS = "";
 Page({
   /**
    * 页面的初始数据
@@ -34,8 +31,7 @@ Page({
     hourWeather: [],
     todayDate: '',
     todayTemp: 0,
-    city: '北京市',
-    locationTipText: UNPROMPTED_TIPS,
+    city: '上海市',
     locationAuthType: UNPROMPTED
   },
 
@@ -47,7 +43,18 @@ Page({
     this.qqmapsdk = new QQMapWX({
       key: wxMapKey
     });
-    this.getWeatherData();
+    wx.getSetting({
+      success: res => {
+        let auth = res.authSetting['scope.userLocation'];
+        this.setData({
+          locationAuthType: auth ? AUTHORIZED : (auth === false) ? UNAUTHORIZED : UNPROMPTED
+        })
+        if (auth)
+          this.getCityAndWeather();
+        else
+          this.getWeatherData();
+      }
+    })
   },
   /**
    * 获取天气数据
@@ -142,7 +149,7 @@ Page({
   },
   onTabLocation: function () {
     if (this.data.locationAuthType == UNPROMPTED) {
-      this.getLocation();
+      this.getCityAndWeather();
     } else {
       /**
        * 打开设置
@@ -151,21 +158,20 @@ Page({
         success: (res) => {
           let auth = res.authSetting = ["scope.userLocation"];
           if (auth) {
-            this.getLocation();
+            this.getCityAndWeather();
           }
         }
       })
     }
   },
-  getLocation() {
+  getCityAndWeather() {
     wx.getLocation({
       success: res => {
         this.reverseGeocoder(res);
       },
       fail: res => {
         this.setData({
-          locationAuthType: UNAUTHORIZED,
-          locationTipText: UNAUTHORIZED_TIPS
+          locationAuthType: UNAUTHORIZED
         })
       }
     })
@@ -184,8 +190,7 @@ Page({
         let city = res.result.address_component.city;
         this.setData({
           city: city,
-          locationAuthType: AUTHORIZED,
-          locationTipText: AUTHORIZED_TIPS
+          locationAuthType: AUTHORIZED
         })
         this.getWeatherData();
       }
