@@ -14,6 +14,15 @@ const weatherColorMap = {
   'heavyrain': '#c5ccd0',
   'snow': '#aae1fc'
 };
+const wxMapKey = 'A47BZ-CQP66-RQUSO-ETKT4-JHDYZ-ZPBQ2';
+var QQMapWX = require('../..//libs/qqmap-wx-jssdk.js');
+var qqmapsdk;
+const UNPROMPTED = 0;
+const UNAUTHORIZED = 1;
+const AUTHORIZED = 2;
+const UNPROMPTED_TIPS = "点击获取当前位置";
+const UNAUTHORIZED_TIPS = "点击开启位置权限";
+const AUTHORIZED_TIPS = "";
 Page({
   /**
    * 页面的初始数据
@@ -24,21 +33,31 @@ Page({
     nowWeatherBackground: "/images/sunny-bg.png",
     hourWeather: [],
     todayDate: '',
-    todayTemp: 0
+    todayTemp: 0,
+    city: '北京市',
+    locationTipText: UNPROMPTED_TIPS,
+    locationAuthType: UNPROMPTED
   },
 
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
+    // 实例化API核心类
+    this.qqmapsdk = new QQMapWX({
+      key: wxMapKey
+    });
     this.getWeatherData();
   },
+  /**
+   * 获取天气数据
+   */
   getWeatherData: function (callback) {
     wx.request({
       url: 'https://test-miniprogram.com/api/weather/now',
       method: "GET",
       data: {
-        city: "北京"
+        city: this.data.city
       },
       header: {
         'content-type': 'application/json' // 默认值
@@ -67,7 +86,9 @@ Page({
       wx.stopPullDownRefresh()
     });
   },
-
+  /**
+   * 设置当前的数据
+   */
   setNow: function (res) {
     let temp = res.data.result.now.temp;
     let weather = res.data.result.now.weather;
@@ -82,6 +103,9 @@ Page({
       backgroundColor: weatherColorMap[weather]
     })
   },
+  /**
+   * 设置未来几小时的数据
+   */
   setHourlyWeather: function (res) {
     let forecast = res.data.result.forecast;
     let hourWeather = [];
@@ -98,6 +122,9 @@ Page({
       hourWeather: hourWeather
     })
   },
+  /**
+   * 设置今天的数据
+   */
   setToday: function (res) {
     let date = new Date();
     this.setData({
@@ -105,9 +132,63 @@ Page({
       todayDate: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} 今天`
     });
   },
+  /**
+   * 跳转列表界面
+   */
   onTabDayWeather: function () {
-   wx.navigateTo({
-     url: '/pages/list/list',
-   })
+    wx.navigateTo({
+      url: '/pages/list/list?city=' + this.data.city,
+    })
+  },
+  onTabLocation: function () {
+    if (this.data.locationAuthType == UNPROMPTED) {
+      this.getLocation();
+    } else {
+      /**
+       * 打开设置
+       */
+      wx.openSetting({
+        success: (res) => {
+          let auth = res.authSetting = ["scope.userLocation"];
+          if (auth) {
+            this.getLocation();
+          }
+        }
+      })
+    }
+  },
+  getLocation() {
+    wx.getLocation({
+      success: res => {
+        this.reverseGeocoder(res);
+      },
+      fail: res => {
+        this.setData({
+          locationAuthType: UNAUTHORIZED,
+          locationTipText: UNAUTHORIZED_TIPS
+        })
+      }
+    })
+  },
+  /**
+   * 根据经纬度获取城市名
+   */
+  reverseGeocoder(res) {
+    // 调用接口
+    this.qqmapsdk.reverseGeocoder({
+      location: {
+        latitude: res.latitude,
+        longitude: res.longitude
+      },
+      success: res => {
+        let city = res.result.address_component.city;
+        this.setData({
+          city: city,
+          locationAuthType: AUTHORIZED,
+          locationTipText: AUTHORIZED_TIPS
+        })
+        this.getWeatherData();
+      }
+    })
   }
 })
